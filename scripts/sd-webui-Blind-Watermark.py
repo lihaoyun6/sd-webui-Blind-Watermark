@@ -79,8 +79,10 @@ def emb_wm_ui(img, files, batch, same_pass):
 		return passcode, [out_image], fullfn
 
 def ext_wm(img, passcode, channel, channel_invert):
+	if "Y" not in channel and "U" not in channel and "V" not in channel:
+		return passcode, "One of the Y/U/V channels is required!", [err]
 	if img is None:
-		return "Please select the image to be processed first!", [err]
+		return passcode, "Please select the image to be processed first!", [err]
 	try:
 		seed_a, seed_b, strength, shape, deep = de_pass(passcode)
 		bwm = watermark(seed_a, seed_b, strength, wm_shape=(64,64), block_shape=(shape,shape))
@@ -88,9 +90,9 @@ def ext_wm(img, passcode, channel, channel_invert):
 		out_images = list(map(lambda x: Image.fromarray(np.uint8(x)), wm_imgs))
 		if "Mix" not in channel:
 			out_images = out_images[1:]
-		return passcode, out_images
+		return passcode, "", out_images
 	except:
-		return "Incorrect password!", [err]
+		return passcode, "Incorrect password!", [err]
 
 def get_pass():
 	seed_a = random.randrange(1000,9999)
@@ -171,6 +173,7 @@ def on_ui_tabs():
 					with gr.Column():
 						input_imge = gr.Image(label="Input Image", elem_id="SDBWM_input_imagee", source="upload", interactive=True, type="numpy", image_mode="RGBA")
 						wm_passe = gr.Textbox(label="Passocode", show_label=False, value="", placeholder="Passocode", interactive=True)
+						wrrtext = gr.Markdown(value="")
 						extra_button = gr.Button(value="Extract",variant="primary")
 					with gr.Column(variant="panel"):
 						output_wm = gr.Gallery(label="Watermark", elem_id="SDBWM_output_wm", show_label=False).style(columns=4, rows=1,object_fit="scale-down")
@@ -183,19 +186,19 @@ def on_ui_tabs():
 				extra_button.click(
 					fn=ext_wm,
 					inputs=[input_imge, wm_passe, channel_wm, channel_invert],
-					outputs=[wm_passe, output_wm],
+					outputs=[wm_passe, wrrtext, output_wm],
 				)
 				
 				channel_wm.change(
 					fn=ext_wm,
 					inputs=[input_imge, wm_passe, channel_wm, channel_invert],
-					outputs=[wm_passe, output_wm],
+					outputs=[wm_passe, wrrtext, output_wm],
 				)
 				
 				channel_invert.change(
 					fn=ext_wm,
 					inputs=[input_imge, wm_passe, channel_wm, channel_invert],
-					outputs=[wm_passe, output_wm],
+					outputs=[wm_passe, wrrtext, output_wm],
 				)
 
 			with gr.TabItem('Get watermark data', id='SDBWM_settings', elem_id="SDBWM_settings_tab"):
