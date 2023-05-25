@@ -5,8 +5,10 @@ import random, os, cv2, base58
 from PIL import Image
 from io import BytesIO
 from modules.shared import opts
-from modules.images import save_image
 from modules.BlindWatermark import watermark
+from modules.BlindWatermark.tools import cv_imwrite
+from modules.images import save_image, get_next_sequence_number
+
 from modules import scripts, script_callbacks, shared
 
 extf, ext = os.path.split(scripts.basedir())
@@ -47,11 +49,13 @@ def emb_wm(img, passcode='', filename=''):
 	if not result:
 		return info, [err]
 	output_img = bwm.embed()
-	embed_img=cv2.cvtColor(output_img, cv2.COLOR_BGR2RGB)
+	#embed_img = cv2.cvtColor(output_img, cv2.COLOR_BGR2RGB)
 	if filename == '':
 		filename = passcode
-	out_image=Image.fromarray(np.uint8(embed_img))
-	fullfn, txt_fullfn = save_image(out_image, opts.data.get("sdbwm_output_path", "outputs/marked-images"), "", seed=filename)
+	#out_image=Image.fromarray(np.uint8(embed_img))
+	fullfn, txt_fullfn = save_image(Image.fromarray(err), opts.data.get("sdbwm_output_path", "outputs/marked-images"), "", seed=filename)
+	cv_imwrite(fullfn, output_img)
+	out_image = Image.open(fullfn)
 
 	return passcode, out_image, fullfn
 

@@ -303,8 +303,8 @@ if __name__!="__main__":
                         wm_V = 255 - self.block_get_wm(ha_V_block[self.block_add_index0[i],self.block_add_index1[i]],index)
                     else:
                         wm_V = self.block_get_wm(ha_V_block[self.block_add_index0[i],self.block_add_index1[i]],index)
-    
-                wm = round((wm_Y+wm_U+wm_V)/len(channel))
+
+                wm = round((wm_Y+wm_U+wm_V)/len(channel.replace('Mix','')))
     
                 #else情况是对循环嵌入的水印的提取
                 if i<self.wm_shape[0]*self.wm_shape[1]:
