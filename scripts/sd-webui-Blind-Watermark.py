@@ -35,10 +35,10 @@ err = base58_to_image(err)
 
 def emb_wm(img, passcode='', filename=''):
 	if img is None:
-		return "Please select the image to be processed first!", [err]
+		return  [err], "Please select the image to be processed first!"
 	if opts.data.get("sdbwm_wm_image", None) == None:
 		print("Set watermark data in \"Settings\" > \"BlindWatermark\" first!")
-		return "Set watermark data in \"Settings\" > \"BlindWatermark\" first!", [err]
+		return [err], "Set watermark data in \"Settings\" > \"BlindWatermark\" first!"
 	if passcode == '':
 		passcode = get_pass()
 	seed_a, seed_b, strength, shape, deep = de_pass(passcode)
@@ -47,7 +47,7 @@ def emb_wm(img, passcode='', filename=''):
 	wm_img = base58_to_image(opts.data.get("sdbwm_wm_image", None))
 	result, info = bwm.read_wm(cv2.cvtColor(wm_img, cv2.COLOR_RGB2BGR))
 	if not result:
-		return info, [err]
+		return [err], info
 	output_img = bwm.embed()
 	#embed_img = cv2.cvtColor(output_img, cv2.COLOR_BGR2RGB)
 	if filename == '':
@@ -57,26 +57,26 @@ def emb_wm(img, passcode='', filename=''):
 	cv_imwrite(fullfn, output_img)
 	out_image = Image.open(fullfn)
 
-	return passcode, out_image, fullfn
+	return out_image, fullfn
 
 def emb_wm_ui(img, files, batch, same_pass):
+	passkey = get_pass()
 	if batch:
 		imgs = []
-		passkey = get_pass()
 		outpath = opts.data.get("sdbwm_output_path", "outputs/marked-images")
 		for i in files:
 			img = np.asarray(Image.open(BytesIO(i)))
 			if same_pass:
-				passcode, out_image, fullfn = emb_wm(img,passcode=passkey)
+				out_image, fullfn = emb_wm(img,passcode=passkey)
 			else:
-				passcode, out_image, fullfn = emb_wm(img)
+				out_image, fullfn = emb_wm(img)
 			imgs.append(out_image)
 		if same_pass:
 			return passkey, imgs, f"Done! All images have been saved to {outpath}"
 		return "", imgs, f"Done! All images have been saved to {outpath}"
 	else:
-		passcode, out_image, fullfn = emb_wm(img)
-		return passcode, [out_image], fullfn
+		out_image, fullfn = emb_wm(img,passcode=passkey)
+		return passkey, [out_image], fullfn
 
 def ext_wm(img, passcode, channel, channel_invert):
 	if "Y" not in channel and "U" not in channel and "V" not in channel:
@@ -94,12 +94,12 @@ def ext_wm(img, passcode, channel, channel_invert):
 	except:
 		return passcode, "Incorrect password!", [err]
 
-def get_pass():
+def get_pass(s='', d=''):
 	seed_a = random.randrange(1000,9999)
 	seed_b = random.randrange(1000,9999)
 	strength = opts.data.get("sdbwm_wm_strength", 15)
-	shape = opts.data.get("tsdbwm_block_shape", 4)
-	deep = opts.data.get("tsdbwm_dwt_deep", 1)
+	shape = s or opts.data.get("tsdbwm_block_shape", 4)
+	deep = d or opts.data.get("tsdbwm_dwt_deep", 1)
 	bwm_str = str(seed_a)+str(seed_b)+str(strength)+str(shape)+str(deep)
 	#bwm_str = str(int(bwm_str) * int(opts.data.get("sdbwm_main_key", "0")))
 	#if len(bwm_str)%2 != 0:
@@ -232,7 +232,7 @@ def create_settings_items():
 		gr.Slider, {"minimum": 10, "maximum": 99, "step": 1}, section=section
 	))
 	shared.opts.add_option("tsdbwm_block_shape", shared.OptionInfo(
-		"4", "Pixel block size (larger = more invisible, but image may not have enough space for watermark)",
+		"6", "Pixel block size (larger = more invisible, but image may not have enough space for watermark)",
 		gr.Radio, {"choices": ["2", "4", "6", "8"]}, section=section
 	))
 	shared.opts.add_option("tsdbwm_dwt_deep", shared.OptionInfo(
@@ -266,15 +266,16 @@ class SDBWM(scripts.Script):
 		)
 
 	def process(self, p):
-		if opts.data.get("sdbwm_auto_wm", False):
-			SDBWM.bwm_pass = get_pass()
-			p.extra_generation_params["BWM pass"] = SDBWM.bwm_pass
+		pass
 	
 	def postprocess_image(self, p, pp):
 		if opts.data.get("sdbwm_auto_wm", False):
+			SDBWM.bwm_pass = get_pass()
+			if pp.image.size <= (512, 512):
+				SDBWM.bwm_pass = get_pass(s=4,d=1)
 			print(" Embedding watermark...")
 			image = np.array(pp.image)
-			bwm_pas, image, fullfn= emb_wm(image, passcode=SDBWM.bwm_pass)
+			out_image, fullfn = emb_wm(image, passcode=SDBWM.bwm_pass)
 			print(f" Saved: {fullfn}")
 			pp.image = pp.image
 
