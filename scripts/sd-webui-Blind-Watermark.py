@@ -275,7 +275,7 @@ class SDBWM(scripts.Script):
 			print(" Embedding watermark...")
 			image = np.array(pp.image)
 			bwm_pas, image, fullfn= emb_wm(image, passcode=SDBWM.bwm_pass)
-			print(f"Saved: {fullfn}")
+			print(f" Saved: {fullfn}")
 			pp.image = pp.image
 
 script_callbacks.on_ui_tabs(on_ui_tabs)
