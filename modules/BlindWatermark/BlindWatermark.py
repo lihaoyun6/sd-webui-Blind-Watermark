@@ -317,13 +317,13 @@ class watermark():
                 extract_wm_U[ii] = (extract_wm_U[ii]*times + wm_U)/(times+1)
                 extract_wm_V[ii] = (extract_wm_V[ii]*times + wm_V)/(times+1)
         
-        high_pass = 100
+        '''high_pass = 180
         low_values = extract_wm_Y > high_pass
         extract_wm_Y[low_values] = 255.0
         low_values = extract_wm_U > high_pass
         extract_wm_U[low_values] = 255.0
         low_values = extract_wm_V > high_pass
-        extract_wm_V[low_values] = 255.0
+        extract_wm_V[low_values] = 255.0'''
         
         wm_index = np.arange(extract_wm.size)
         self.random_wm = np.random.RandomState(self.random_seed_wm)
@@ -365,7 +365,7 @@ class watermark():
         elif len(YUVs) == 1:
             YUVs.append(YUVs[0])
         #YUVs.insert(0, extract_wm.reshape(self.wm_shape[0],self.wm_shape[1]))
-        YUVs[-1] = cv2.copyMakeBorder(remove_noise(YUVs[-1],1),3,3,3,3,borderType=cv2.BORDER_CONSTANT,value=128)
+        YUVs[-1] = cv2.copyMakeBorder(remove_noise(YUVs[-1],3),3,3,3,3,borderType=cv2.BORDER_CONSTANT,value=128)
         return YUVs
 
 if __name__ == '__main__':
