@@ -190,7 +190,7 @@ def on_ui_tabs():
 							with gr.Column():
 								channel_wm = gr.CheckboxGroup(["Y","U","V"],value=["Y","U","V"], label="Channels:", interactive=True)
 								channel_invert = gr.CheckboxGroup(["Y","U","V"],value=None, label="Invert channels:", interactive=True)
-							wm_passe = gr.Textbox(label="Passocode", show_label=False, value="", placeholder="Passocode", interactive=True)
+						wm_passe = gr.Textbox(label="Passocode", show_label=False, value="", placeholder="Passocode", interactive=True)
 						wrrtext = gr.Markdown(value="")
 						extra_button = gr.Button(value="Extract",variant="primary")
 					with gr.Column(variant="panel"):
